@@ -225,6 +225,24 @@ where
 
     pub fn get_cycle_count(&mut self) -> CycleCount {self.config.cc}
 
+    // # IO
+    /// ## Read mag field
+    pub fn read_magx(&mut self) -> i32 {
+        self.read_bytes::<4, i32>(MX_REG)
+    }
+
+    pub fn read_magy(&mut self) -> i32 {
+        self.read_bytes::<4, i32>(MY_REG)
+    }
+
+    pub fn read_magz(&mut self) -> i32 {
+        self.read_bytes::<4, i32>(MZ_REG)
+    }
+
+    pub fn read_mag(&mut self) -> [i32; 3] {
+        self.read_bytes::<10, [i32;3]>(MX_REG)
+    }
+
     
     
 
