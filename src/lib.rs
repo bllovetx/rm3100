@@ -201,25 +201,28 @@ where
         self.write_word(CCX_REG, ccx);
         self.config.cc.x = ccx;
     }
+
     pub fn set_cycle_count_y(&mut self, ccy: u16) {
         self.write_word(CCY_REG, ccy);
         self.config.cc.y = ccy;
     }
+
     pub fn set_cycle_count_z(&mut self, ccz: u16) {
         self.write_word(CCZ_REG, ccz);
         self.config.cc.z = ccz;
     }
+
     pub fn set_cycle_count_xyz(
         &mut self, ccx: u16, ccy: u16, ccz: u16
     ) {
-        // can also be realized by a single write
-        self.set_cycle_count_x(ccx);
-        self.set_cycle_count_y(ccy);
-        self.set_cycle_count_z(ccz);
+        self.write_bytes::<7, [u16; 3]>(CCX_REG, [ccx, ccy, ccz]);
+        self.config.cc = CycleCount{x: ccx, y:ccy, z:ccz};
     }
+
     pub fn set_cycle_count(&mut self, cc: u16) {
         self.set_cycle_count_xyz(cc, cc, cc);
     }
+
     pub fn get_cycle_count(&mut self) -> CycleCount {self.config.cc}
 
     
