@@ -1,6 +1,7 @@
 #![no_std]
 
-use core::str::Bytes;
+pub mod packet;
+use packet::Packet;
 
 use embedded_hal::{self, digital::v2::OutputPin};
 
@@ -22,35 +23,17 @@ const REVID_REG: u8 = 0x36;
 // flags
 const READ_FLAG: u8 = 0x80;
 
-/// spi packet
-/// 
-/// first byte: read/write address
-/// remaining N-1 bytes: data
-struct Packet<const N:usize> ([u8; N]);
+// masks
+const PMX_MASK: u8 = 0x10;
+const PMY_MASK: u8 = 0x20;
+const PMZ_MASK: u8 = 0x30;
 
-impl<const N:usize> Default for Packet<N> {
-    fn default() -> Self {
-        Self([0; N])
-    }
-}
+// bit_shift
+const PMX_SHIFT: u8 = 4;
+const PMY_SHIFT: u8 = 5;
+const PMZ_SHIFT: u8 = 6;
 
-impl<const N:usize> Packet<N> {
-    pub fn address(&mut self, address: u8) {
-        self.0[0] = address;
-    }
-}
 
-impl From<u16> for Packet<3> {
-    fn from(data: u16) -> Self {
-        Packet::<3>([0, (data >> 8) as u8, data as u8])
-    }
-}
-
-impl From<Packet<3>> for u16 {
-    fn from(packet: Packet<3>) -> Self {
-        ((packet.0[1] as u16) << 8) | packet.0[2] as u16
-    }
-}
 
 #[derive(Clone, Copy)]
 pub struct CycleCount {
@@ -133,57 +116,23 @@ where
         self.cs.set_high().ok();
     }
 
-    fn read_byte(&mut self, address: u8) -> u8 {
-        let mut bytes = [READ_FLAG | address, 0x0];
-        self.cs.set_low().ok();
-        self.spi.transfer(&mut bytes).ok();
-        self.cs.set_high().ok();
-        bytes[1]
+    pub fn read_byte(&mut self, address: u8) -> u8 {
+        self.read_bytes::<2, u8>(address)
     }
 
     fn write_byte(&mut self, address: u8, value: u8) {
-        let mut request = [address, value];
-        self.cs.set_low().ok();
-        self.spi.write(&mut request).ok();
-        self.cs.set_high().ok();
+        self.write_bytes::<2, u8>(address, value);
     }
 
     fn read_word(&mut self, address: u8) -> u16 {
-        let mut bytes = [READ_FLAG | address, 0x0, 0x0];
-        self.cs.set_low().ok();
-        self.spi.transfer(&mut bytes).ok();
-        self.cs.set_high().ok();
-        ((bytes[1] as u16) << 8) | bytes[2] as u16
+        self.read_bytes::<3, u16>(address)
     }
 
-    fn write_word(&mut self, address: u8, value: u16) {
-        let mut request= [address, (value >> 8) as u8, value as u8];
-        self.cs.set_low().ok();
-        self.spi.write(&mut request).ok();
-        self.cs.set_high().ok();
+    pub fn write_word(&mut self, address: u8, value: u16) {
+        self.write_bytes::<3, u16>(address, value);
     }
 
-    /// read N-1 bytes
-    /// 
-    /// N-1: for efficiency and rust const generic restriction 
-    fn read_bytes<const N: usize, OutPutType>(&mut self, address: u8) -> OutPutType
-    where OutPutType: From<Packet<N>>
-    {
-        let mut bytes: [u8; N] = [0; N];
-        bytes[0] = READ_FLAG | address;
-        self.cs.set_low().ok();
-        self.spi.transfer(&mut bytes).ok();
-        self.cs.set_high().ok();
-        OutPutType::from(Packet::<N>{data: bytes})
-    }
 
-    fn read_tri_bytes(&mut self, address: u8) -> u32 {
-        let mut bytes = [READ_FLAG | address, 0x0, 0x0, 0x0];
-        self.cs.set_low().ok();
-        self.spi.transfer(&mut bytes).ok();
-        self.cs.set_high().ok();
-        ((bytes[1] as u32) << 16) | ((bytes[2] as u32) << 8) | bytes[3] as u32
-    }
 
     // # configurations
 
@@ -226,6 +175,17 @@ where
     pub fn get_cycle_count(&mut self) -> CycleCount {self.config.cc}
 
     // # IO
+    /// ## start single measurement
+    pub fn single_measure(
+        &mut self, x: bool, y: bool, z: bool
+    ) {
+        self.write_byte(POLL_REG, 
+            ((x as u8) << PMX_SHIFT) |
+            ((y as u8) << PMY_SHIFT) |
+            ((z as u8) << PMZ_SHIFT)
+        );
+    }
+
     /// ## Read mag field
     pub fn read_magx(&mut self) -> i32 {
         self.read_bytes::<4, i32>(MX_REG)
