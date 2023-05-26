@@ -105,6 +105,33 @@ where
     }
 
     // # basic interface
+    /// read/write N-1 bytes
+    /// 
+    /// N: packet length(address + data)
+    /// N-1: for efficiency and rust const generic restriction 
+    pub fn read_bytes<const N: usize, OutPutType>(
+        &mut self, address: u8
+    ) -> OutPutType
+    where OutPutType: From<Packet<N>>
+    {
+        let mut packet = *Packet::<N>::default()
+            .address(READ_FLAG | address);
+        self.cs.set_low().ok();
+        self.spi.transfer(&mut packet.0).ok();
+        self.cs.set_high().ok();
+        OutPutType::from(packet)
+    }
+
+    pub fn write_bytes<const N: usize, InputType>(
+        &mut self, address: u8, value: InputType
+    ) where InputType: Into<Packet<N>>
+    {
+        let mut packet: Packet<N> = value.into();
+        packet.address(address);
+        self.cs.set_low().ok();
+        self.spi.write(&mut packet.0).ok();
+        self.cs.set_high().ok();
+    }
 
     fn read_byte(&mut self, address: u8) -> u8 {
         let mut bytes = [READ_FLAG | address, 0x0];
