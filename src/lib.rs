@@ -207,13 +207,11 @@ where
     /// value type: u16
     /// default: 0x00C8(200)
     pub fn set_cycle_count_x(&mut self, ccx: u16) -> &mut Self {
-        self.write_word(CCX_REG, ccx);
         self.config.cc.x = ccx;
         self.write_word(CCX_REG, ccx)
     }
 
     pub fn set_cycle_count_y(&mut self, ccy: u16) -> &mut Self {
-        self.write_word(CCY_REG, ccy);
         self.config.cc.y = ccy;
         self.write_word(CCY_REG, ccy)
     }
