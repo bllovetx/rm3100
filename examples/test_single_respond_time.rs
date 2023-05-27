@@ -15,7 +15,7 @@ use hal::pac;
 use hal::prelude::*;
 use hal::spi::Spi;
 
-use rm3100::{RM3100, Config, UpdateRate};
+use rm3100::{RM3100, Config, Status};
 
 #[entry]
 fn main() -> ! {
@@ -48,20 +48,40 @@ fn main() -> ! {
     let mut cs = gpioa
             .pa2
             .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
+    let mut trigger = gpioa
+            .pa1
+            .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
+    let drdy = gpioa
+            .pa0
+            .into_pull_down_input(&mut gpioa.moder, &mut gpioa.pupdr);
     cs.set_high().ok();
+    trigger.set_low().ok();
 
-    let mut spi = Spi::new(dp.SPI3, (sck, miso, mosi), 1.MHz(), clocks, &mut rcc.apb1);
+    let spi = Spi::new(dp.SPI3, (sck, miso, mosi), 1.MHz(), clocks, &mut rcc.apb1);
 
     let mut rm3100 = RM3100::new(spi, cs, Config::default());
     rm3100
-        .set_cycle_count(200)
-        .set_update_rate(UpdateRate::Hz600);
+        .set_cycle_count(0xC8) // 200 cc for each axis
+        .write_byte(0x01, 0b00000100); // DRDY to HIGH after the completion of a measurement on any axis & disable continous mode
+    hprintln!("{:?}", rm3100.read_word(0x04)); // verify ccx
+    hprintln!("{:02X?}", rm3100.read_byte(0x01)); // verify CMM
+    rm3100.write_byte(0x0B, 0x92);
+    hprintln!("{:02X?}", rm3100.read_byte(0x0B)); // TMRC: data rate register
+    
 
 
     loop {
         rm3100.single_measure(true, false, false);
+        trigger.set_high().ok();
         asm::delay(100_000);
-        hprintln!("{:?}", rm3100.read_mag());
+        trigger.set_low().ok();
+        // hprintln!("{:02X?}", rm3100.read_byte(0x34));
+        // let init_status = drdy.is_high();//rm3100.read_byte(0x34);
+        let mags = rm3100.read_mag();
+        // let final_status = drdy.is_high();//rm3100.read_byte(0x34);
+        // hprintln!("{:?}", init_status);
+        // hprintln!("{:?}", mags);
+        // hprintln!("{:?}", final_status);
         
     }
 }

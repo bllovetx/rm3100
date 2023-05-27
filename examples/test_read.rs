@@ -15,7 +15,7 @@ use hal::pac;
 use hal::prelude::*;
 use hal::spi::Spi;
 
-use rm3100::{RM3100, Config};
+use rm3100::{RM3100, Config, Status, UpdateRate};
 
 #[entry]
 fn main() -> ! {
@@ -50,13 +50,21 @@ fn main() -> ! {
             .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
     cs.set_high().ok();
 
-    let mut spi = Spi::new(dp.SPI3, (sck, miso, mosi), 1.MHz(), clocks, &mut rcc.apb1);
+    let spi = Spi::new(dp.SPI3, (sck, miso, mosi), 1.MHz(), clocks, &mut rcc.apb1);
 
     let mut rm3100 = RM3100::new(spi, cs, Config::default());
+    rm3100
+        .set_cycle_count(0xC8)
+        .write_byte(0x01, 0b00000100);
+    hprintln!("{:?}", rm3100.read_word(0x04));
+    
+    hprintln!("{:02X?}", rm3100.read_byte(0x01));
+    hprintln!("{:?}", f32::from(UpdateRate::Hz0_075));
+    
+    
     // rm3100.write_byte(0x04 as u8, 0x1);
     // rm3100.write_byte(0x05 as u8, 0xC8);
     // let temp = rm3100.read_byte(0x04 as u8);
-    // hprintln!("{:?}", temp);
     // let temp = rm3100.read_byte(0x05 as u8);
     // hprintln!("{:?}", temp);
     // let temp = rm3100.read_byte(0x06 as u8);
@@ -124,9 +132,18 @@ fn main() -> ! {
 
         // spi.send(0x8B as u8).unwrap();
         // asm::delay(100_000);
-        asm::wfi();
+        // asm::wfi();
         // let temp = spi.read();
         // hprintln!("{:?}", temp);
+        rm3100.single_measure(true, false, false);
+        asm::delay(100_000_000);
+        // hprintln!("{:02X?}", rm3100.read_byte(0x34));
+        let init_status = rm3100.read_byte(0x34);
+        let mags = rm3100.read_mag();
+        let final_status = rm3100.read_byte(0x34);
+        hprintln!("{:02X?}", init_status);
+        hprintln!("{:?}", mags);
+        hprintln!("{:02X?}", final_status);
         
     }
 }
