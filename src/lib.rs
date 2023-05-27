@@ -167,8 +167,8 @@ where
 
     pub fn write_bytes<const N: usize, InputType>(
         &mut self, address: u8, value: InputType
-    ) where InputType: Into<Packet<N>>
-    {
+    ) -> &mut Self
+    where InputType: Into<Packet<N>> {
         let mut packet: Packet<N> = value.into();
         packet.address(address);
         self.cs.set_low().ok();
@@ -180,16 +180,16 @@ where
         self.read_bytes::<2, u8>(address)
     }
 
-    fn write_byte(&mut self, address: u8, value: u8) {
-        self.write_bytes::<2, u8>(address, value);
+    pub fn write_byte(&mut self, address: u8, value: u8) -> &mut Self {
+        self.write_bytes::<2, u8>(address, value)
     }
 
-    fn read_word(&mut self, address: u8) -> u16 {
+    pub fn read_word(&mut self, address: u8) -> u16 {
         self.read_bytes::<3, u16>(address)
     }
 
-    pub fn write_word(&mut self, address: u8, value: u16) {
-        self.write_bytes::<3, u16>(address, value);
+    pub fn write_word(&mut self, address: u8, value: u16) -> &mut Self {
+        self.write_bytes::<3, u16>(address, value)
     }
 
 
@@ -206,30 +206,32 @@ where
     /// 
     /// value type: u16
     /// default: 0x00C8(200)
-    pub fn set_cycle_count_x(&mut self, ccx: u16) {
+    pub fn set_cycle_count_x(&mut self, ccx: u16) -> &mut Self {
         self.write_word(CCX_REG, ccx);
         self.config.cc.x = ccx;
+        self.write_word(CCX_REG, ccx)
     }
 
-    pub fn set_cycle_count_y(&mut self, ccy: u16) {
+    pub fn set_cycle_count_y(&mut self, ccy: u16) -> &mut Self {
         self.write_word(CCY_REG, ccy);
         self.config.cc.y = ccy;
+        self.write_word(CCY_REG, ccy)
     }
 
-    pub fn set_cycle_count_z(&mut self, ccz: u16) {
-        self.write_word(CCZ_REG, ccz);
+    pub fn set_cycle_count_z(&mut self, ccz: u16) -> &mut Self {
         self.config.cc.z = ccz;
+        self.write_word(CCZ_REG, ccz)
     }
 
     pub fn set_cycle_count_xyz(
         &mut self, ccx: u16, ccy: u16, ccz: u16
-    ) {
-        self.write_bytes::<7, [u16; 3]>(CCX_REG, [ccx, ccy, ccz]);
+    ) -> &mut Self {
         self.config.cc = CycleCount{x: ccx, y:ccy, z:ccz};
+        self.write_bytes::<7, [u16; 3]>(CCX_REG, [ccx, ccy, ccz])
     }
 
-    pub fn set_cycle_count(&mut self, cc: u16) {
-        self.set_cycle_count_xyz(cc, cc, cc);
+    pub fn set_cycle_count(&mut self, cc: u16) -> &mut Self {
+        self.set_cycle_count_xyz(cc, cc, cc)
     }
 
     pub fn get_cycle_count(&mut self) -> CycleCount {self.config.cc}
