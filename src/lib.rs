@@ -32,6 +32,7 @@ const PMZ_MASK: u8 = 0x30;
 const PMX_SHIFT: u8 = 4;
 const PMY_SHIFT: u8 = 5;
 const PMZ_SHIFT: u8 = 6;
+const STATUS_SHIFT: u8 = 7;
 
 
 
@@ -54,12 +55,14 @@ pub enum Status {
     Unavailable,
 }
 
+
 impl From<bool> for Status {
     fn from(bit: bool) -> Self {
         if bit {Status::Available} else {Status::Unavailable}
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum UpdateRate {
     Hz600 = 0x92,
     Hz300 = 0x93,
@@ -111,9 +114,24 @@ impl Default for UpdateRate {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum DRDM {
+    AlarmFull = 0b0000,
+    Any = 0b0100,
+    Full = 0b1000,
+    Alarm = 0b1100,
+}
+
+impl Default for DRDM {
+    fn default() -> Self {
+        DRDM::Full
+    }
+}
+
 pub struct  Config {
     pub cc: CycleCount,
     pub rate: UpdateRate,
+    pub drdm: DRDM,
 }
 
 impl Default for Config {
@@ -121,6 +139,7 @@ impl Default for Config {
         Config {
             cc: CycleCount::default(),
             rate: UpdateRate::default(),
+            drdm: DRDM::default(),
         }
     }
 }
@@ -174,6 +193,7 @@ where
         self.cs.set_low().ok();
         self.spi.write(&mut packet.0).ok();
         self.cs.set_high().ok();
+        self
     }
 
     pub fn read_byte(&mut self, address: u8) -> u8 {
@@ -244,6 +264,14 @@ where
 
     pub fn get_update_rate(&mut self) -> UpdateRate {self.config.rate}
 
+    /// ## Set DRDY Mode (CMM bit 3&2)
+    /// 
+    /// Alarm is omitted currently
+    pub fn set_drdm(&mut self, mode: DRDM) -> &mut Self {
+        self.config.drdm = mode;
+        self.write_byte(CMM_REG, mode as u8)
+    }
+
 
     // # IO
     /// ## start single measurement
@@ -255,6 +283,12 @@ where
             ((y as u8) << PMY_SHIFT) |
             ((z as u8) << PMZ_SHIFT)
         );
+    }
+
+    /// ## DRDY by spi
+    pub fn get_status(&mut self) -> Status {
+        ((self.read_byte(STATUS_REG) 
+        >> STATUS_SHIFT) != 0).into()
     }
 
     /// ## Read mag field
