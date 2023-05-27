@@ -71,7 +71,7 @@ fn main() -> ! {
 
 
     loop {
-        rm3100.single_measure(true, false, false);
+        rm3100.start_single_measure(true, false, false);
         trigger.set_high().ok();
         asm::delay(100_000);
         trigger.set_low().ok();

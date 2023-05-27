@@ -135,7 +135,7 @@ fn main() -> ! {
         // asm::wfi();
         // let temp = spi.read();
         // hprintln!("{:?}", temp);
-        rm3100.single_measure(true, false, false);
+        rm3100.start_single_measure(true, false, false);
         asm::delay(100_000_000);
         // hprintln!("{:02X?}", rm3100.read_byte(0x34));
         let init_status = rm3100.read_byte(0x34);

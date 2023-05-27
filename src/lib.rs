@@ -275,7 +275,10 @@ where
 
     // # IO
     /// ## start single measurement
-    pub fn single_measure(
+    /// 
+    /// require user to ensure START(bit 0 of CMM) to be 0 
+    /// for efficiency
+    pub fn start_single_measure(
         &mut self, x: bool, y: bool, z: bool
     ) {
         self.write_byte(POLL_REG, 

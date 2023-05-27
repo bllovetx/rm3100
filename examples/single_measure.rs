@@ -59,7 +59,7 @@ fn main() -> ! {
 
 
     loop {
-        rm3100.single_measure(true, false, false);
+        rm3100.start_single_measure(true, false, false);
         asm::delay(100_000);
         hprintln!("{:?}", rm3100.read_mag());
         
