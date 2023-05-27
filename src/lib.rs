@@ -42,6 +42,13 @@ pub struct CycleCount {
     pub z: u16,
 }
 
+impl Default for CycleCount {
+    fn default() -> Self {
+        CycleCount { x: 200, y: 200, z: 200 }
+    }
+}
+
+#[derive(PartialEq)]
 pub enum Status {
     Available,
     Unavailable,
@@ -98,14 +105,22 @@ impl From<UpdateRate> for f32 {
     }
 }
 
+impl Default for UpdateRate {
+    fn default() -> Self {
+        UpdateRate::Hz600
+    }
+}
+
 pub struct  Config {
     pub cc: CycleCount,
+    pub rate: UpdateRate,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            cc: CycleCount { x: 200, y: 200, z: 200 }
+            cc: CycleCount::default(),
+            rate: UpdateRate::default(),
         }
     }
 }
