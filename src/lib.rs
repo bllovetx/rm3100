@@ -53,6 +53,51 @@ impl From<bool> for Status {
     }
 }
 
+pub enum UpdateRate {
+    Hz600 = 0x92,
+    Hz300 = 0x93,
+    Hz150 = 0x94,
+    Hz75 = 0x95,
+    Hz37 = 0x96,
+    Hz18 = 0x97,
+    Hz9 = 0x98,
+    Hz4_5 = 0x99,
+    Hz2_3 = 0x9A,
+    Hz1_2 = 0x9B,
+    Hz0_6 = 0x9C,
+    Hz0_3 = 0x9D,
+    Hz0_15 = 0x9E,
+    Hz0_075 = 0x9F,
+}
+
+impl From<f32> for UpdateRate {
+    fn from(rate: f32) -> Self {
+        let factor = ((600 as f32) / rate) as u32;
+        match factor {
+            0..=1 => UpdateRate::Hz600,
+            2..=3 => UpdateRate::Hz300,
+            4..=7 => UpdateRate::Hz150,
+            8..=15 => UpdateRate::Hz75,
+            16..=31 => UpdateRate::Hz37,
+            32..=63 => UpdateRate::Hz18,
+            64..=127 => UpdateRate::Hz9,
+            128..=255 => UpdateRate::Hz4_5,
+            256..=511 => UpdateRate::Hz2_3,
+            512..=1023 => UpdateRate::Hz1_2,
+            1024..=2047 => UpdateRate::Hz0_6,
+            2048..=4095 => UpdateRate::Hz0_3,
+            4096..=8191 => UpdateRate::Hz0_15,
+            _ => UpdateRate::Hz0_075,
+        }
+    }
+}
+
+impl From<UpdateRate> for f32 {
+    fn from(rate: UpdateRate) -> Self {
+        600 as f32 / (1 << ((0xF & rate as u8) - 2)) as f32
+    }
+}
+
 pub struct  Config {
     pub cc: CycleCount,
 }
