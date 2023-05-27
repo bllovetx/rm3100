@@ -32,6 +32,9 @@ const PMZ_MASK: u8 = 0x30;
 const PMX_SHIFT: u8 = 4;
 const PMY_SHIFT: u8 = 5;
 const PMZ_SHIFT: u8 = 6;
+const CMX_SHIFT: u8 = 4;
+const CMY_SHIFT: u8 = 5;
+const CMZ_SHIFT: u8 = 6;
 const STATUS_SHIFT: u8 = 7;
 
 
@@ -286,6 +289,26 @@ where
             ((y as u8) << PMY_SHIFT) |
             ((z as u8) << PMZ_SHIFT)
         );
+    }
+
+    /// ## start continuous measurement
+    pub fn start_continuous_measure(
+        &mut self, x: bool, y: bool, z: bool
+    ) {
+        self.write_byte(CMM_REG, 
+            self.config.drdm as u8 |
+            ((x as u8) << CMX_SHIFT) |
+            ((y as u8) << CMY_SHIFT) |
+            ((z as u8) << CMZ_SHIFT) |
+            true as u8 // Start bit
+        );
+    }
+
+    /// ## stop continuous measurement
+    pub fn stop_continuous_measure(&mut self) -> &mut Self {
+        self.write_byte(CMM_REG, 
+            self.config.drdm as u8 | false as u8
+        )
     }
 
     /// ## DRDY by spi
