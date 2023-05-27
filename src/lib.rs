@@ -234,6 +234,17 @@ where
 
     pub fn get_cycle_count(&mut self) -> CycleCount {self.config.cc}
 
+    /// ## Set Update Rate (TMRC)
+    /// 
+    /// rate: use enum UpdateRate or use f32.into()
+    pub fn set_update_rate(&mut self, rate: UpdateRate) -> &mut Self {
+        self.config.rate = rate;
+        self.write_byte(TMRC_REG, rate as u8)
+    }
+
+    pub fn get_update_rate(&mut self) -> UpdateRate {self.config.rate}
+
+
     // # IO
     /// ## start single measurement
     pub fn single_measure(
