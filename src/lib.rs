@@ -311,6 +311,13 @@ where
         )
     }
 
+    /// ## check connect
+    /// 
+    /// compare revid (0x22 for rm3100 from wit)
+    pub fn check_connect(&mut self, revid: u8) -> bool {
+        self.read_byte(REVID_REG) == revid
+    }
+
     /// ## DRDY by spi
     pub fn get_status(&mut self) -> Status {
         ((self.read_byte(STATUS_REG) 
