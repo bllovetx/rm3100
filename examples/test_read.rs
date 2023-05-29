@@ -56,6 +56,7 @@ fn main() -> ! {
     rm3100
         .set_cycle_count(0xC8)
         .write_byte(0x01, 0b00000100);
+    hprintln!("{:?}", rm3100.check_connect(0x22)); // check connect
     hprintln!("{:?}", rm3100.read_word(0x04));
     
     hprintln!("{:02X?}", rm3100.read_byte(0x01));
