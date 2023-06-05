@@ -1,6 +1,7 @@
 #![no_std]
 
 pub mod packet;
+pub mod mincircularbuffer;
 use packet::Packet;
 
 use embedded_hal::{self, digital::v2::OutputPin};
