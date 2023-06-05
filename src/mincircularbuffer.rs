@@ -34,6 +34,7 @@ where Data: Copy + Clone
         } else {
             let res = Some(self.data[self.start_index]);
             self.start_index += 1;
+            self.start_index %= N;
             res
         }
     }
