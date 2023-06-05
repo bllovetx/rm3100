@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![allow(dead_code)]
+#![allow(unused)]
 
 use cortex_m::asm;
 use cortex_m_semihosting::hprintln;
@@ -28,7 +29,7 @@ fn main() -> ! {
         .sysclk(48.MHz())
         .pclk1(24.MHz())
         .freeze(&mut flash.acr);
-    let mut buffer = MinCircularBuffer::<u32, 10>::new(0);
+    let mut buffer = MinCircularBuffer::<u32, 5>::new(0);
     hprintln!("{:?}", buffer.pop());
     hprintln!("{:?}", buffer.push(1));
     hprintln!("{:?}", buffer.push(2));
