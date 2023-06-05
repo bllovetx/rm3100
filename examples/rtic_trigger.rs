@@ -1,3 +1,4 @@
+// approximately 5us latency
 #![deny(unsafe_code)]
 #![deny(warnings)]
 #![no_main]
