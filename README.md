@@ -46,3 +46,7 @@ USB expose two Interface, one CDC Interrupt and one CDC DATA. To W/R, use Endpoi
 | 0x81  | is oveflow?(one byte): 0 if not overflow |
 |0x82   |clear overflow(one byte): 1 after finish |
 |0x83   | clear buffer(one byte): 1 after finish |
+
+#### Performance
+
+on different board tested respond(trigger output) 5-10us
