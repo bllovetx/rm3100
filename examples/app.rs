@@ -239,6 +239,22 @@ mod app {
                                 ).into();
                                 outputlen = 1;
                             },
+                            0x82 => {// clear overflow
+                                cx.shared.overflow.lock(
+                                    |_of| {*_of = false;}
+                                );
+                                outputbuf[0] = 1u8;
+                                outputlen = 1;
+                            },
+                            0x83 => {// clear buffer
+                                cx.shared.buffer.lock(
+                                    |_buffer| {
+                                        _buffer.clear();
+                                    }
+                                );
+                                outputbuf[0] = 1u8;
+                                outputlen = 1;
+                            }
                             _ => {outputlen = 0;}
                         }
                         // write

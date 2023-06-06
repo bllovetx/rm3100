@@ -38,4 +38,12 @@ where Data: Copy + Clone
             res
         }
     }
+
+    /// clear buffer
+    /// 
+    /// simply set start/stop to 0
+    pub fn clear(&mut self) {
+        self.start_index = 0;
+        self.end_index = 0;
+    }
 }
