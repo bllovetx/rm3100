@@ -1,13 +1,29 @@
 /*
     # RM3100 Embedded Server
 
-    ## Pin map
+    ## Notes
+    1. Trigger is responded in approximately 5us
+    2. one measure takes approximately 2.5ms (cc = 200)
 
+    ## Pin map
     ### spi (rm3100)
     SCK: pc10, MISO: pc11, MOSI: pc12, CS: PA2
     ### DRDY (rm3100): PA0(bind EXTI0, rise)
     ### trigger output: PA1
     ### trigger input: PC1(bind EXTI1, rise)
+
+    ## USB interface
+    ### Endpoints:
+    - write address: 0x2
+    - read address: 0x82
+    ### protocal:
+    write | function & return
+    0x80    mag(five bytes): first byte 0 if no data available
+            last four bytes i32 mag
+    0x81    is oveflow?(one byte): 0 if not overflow
+    0x82    clear overflow(one byte): 1 after finish
+    0x83    clear buffer(one byte): 1 after finish
+
 */
 // #![deny(unsafe_code)]
 #![deny(warnings)]
@@ -197,7 +213,7 @@ mod app {
     /// TODO: can also be realized in 'interrupt' manner with usb_lp/usb_hp
     #[idle(local = [led, serial, usb_dev], shared = [buffer, overflow])]
     fn idle(mut cx: idle::Context) -> ! {
-        let led = cx.local.led;
+        // let led = cx.local.led;
         let serial = cx.local.serial;
         let usb_dev = cx.local.usb_dev;
         loop {
@@ -217,7 +233,7 @@ mod app {
                         // encode according to instr
                         match c {
                             0x80 => { // return mag
-                                led.set_high().ok();
+                                // led.set_high().ok();
                                 // encode pop result
                                 outputbuf = match cx.shared.buffer.lock(
                                     |_buffer| {
@@ -231,7 +247,7 @@ mod app {
                                     None => [0u8; 5],
                                 };
                                 outputlen = 5;
-                                led.set_low().ok();
+                                // led.set_low().ok();
                             },
                             0x81 => {// is overflow?
                                 outputbuf[0] = cx.shared.overflow.lock(
