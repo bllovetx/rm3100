@@ -16,6 +16,18 @@ mainly used forhandle data type conversion
 
 minmum circular buffer, contains an array and two "pointer", only has `pop`, `push` and `clear`
 
+## Usage
+
+To flash app(as an example):
+
+run openocd and then run
+
+```terminal
+cargo run --example app
+```
+
+in this repository
+
 ## Examples
 
 ### app
@@ -34,4 +46,3 @@ USB expose two Interface, one CDC Interrupt and one CDC DATA. To W/R, use Endpoi
 | 0x81  | is oveflow?(one byte): 0 if not overflow |
 |0x82   |clear overflow(one byte): 1 after finish |
 |0x83   | clear buffer(one byte): 1 after finish |
-
